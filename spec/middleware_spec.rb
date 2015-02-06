@@ -20,6 +20,17 @@ shared_examples "common scenarios" do
     page.current_path.should == RackSessionAccess.path
   end
 
+  scenario "changing session data on a full url visit" do
+    page.visit("http://example.com" + RackSessionAccess.edit_path)
+    page.should have_content("Update rack session")
+
+    page.fill_in "data", :with => RackSessionAccess.encode({'user_id' => 1})
+    page.click_button "Update"
+    page.should have_content("Rack session data")
+    page.should have_content('"user_id" : 1')
+    page.current_path.should == RackSessionAccess.path
+  end
+
   scenario "providing no session data" do
     page.visit RackSessionAccess.edit_path
     page.should have_content("Update rack session")
@@ -43,6 +54,15 @@ shared_examples "common scenarios" do
     page.set_rack_session(data)
 
     page.visit(RackSessionAccess.path)
+    page.should have_content('"user_email" : "jack@daniels.com"')
+    page.should have_content('"user_profile" : {:age=>12}')
+    page.should have_content('"role_ids" : [1, 20, 30]')
+  end
+
+  scenario "modify session data on a full url visit with set_rack_session helper" do
+    page.set_rack_session(data)
+
+    page.visit('http://example.com' + RackSessionAccess.path)
     page.should have_content('"user_email" : "jack@daniels.com"')
     page.should have_content('"user_profile" : {:age=>12}')
     page.should have_content('"role_ids" : [1, 20, 30]')
